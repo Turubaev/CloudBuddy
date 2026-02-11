@@ -1,0 +1,63 @@
+# Built application files
+*.apk
+*.aar
+*.ap_
+*.aab
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+release/
+
+# Gradle
+.gradle/
+build/
+
+# Local configuration (SDK path, etc.) — не коммитить, часто содержит ключи
+local.properties
+
+# Android Studio / IntelliJ
+*.iml
+.idea/
+.idea/caches
+.idea/libraries
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+*.ipr
+*.iws
+
+# External native build
+.externalNativeBuild/
+.cxx/
+
+# Android Studio captures
+/captures
+
+# Kotlin
+*.log
+*.kotlin_module
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Keystore and signing (никогда не коммитить ключи подписи)
+*.jks
+*.keystore
+
+# Proguard
+proguard/
+
+# Cursor (опционально: раскомментируй, если не хочешь пушить настройки Cursor)
+.cursor/
