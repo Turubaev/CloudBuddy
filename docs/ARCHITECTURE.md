@@ -1,5 +1,7 @@
 # CloudBuddy — структура проекта и архитектура
 
+> Этот документ сохраняет исходное описание прототипа. Актуальная архитектура реализованного MVP находится в [MVP_IMPLEMENTATION.md](MVP_IMPLEMENTATION.md).
+
 ## Обзор
 
 CloudBuddy — Android-приложение на **Kotlin** с **Jetpack Compose**. Сборка — Gradle (Kotlin DSL), один модуль `app`. Сейчас в приложении одна основная активность и один экран — мини-игра в стиле Flappy Bird.

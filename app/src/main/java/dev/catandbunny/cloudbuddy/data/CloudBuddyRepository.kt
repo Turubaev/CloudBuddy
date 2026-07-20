@@ -1,0 +1,20 @@
+package dev.catandbunny.cloudbuddy.data
+
+import dev.catandbunny.cloudbuddy.core.model.CloudBuddyState
+import dev.catandbunny.cloudbuddy.core.model.Personality
+import dev.catandbunny.cloudbuddy.core.model.UserMood
+import kotlinx.coroutines.flow.Flow
+
+interface CloudBuddyRepository {
+    val state: Flow<CloudBuddyState>
+
+    suspend fun completeOnboarding(name: String, personality: Personality)
+    suspend fun saveCheckIn(mood: UserMood, note: String)
+    suspend fun recordGame(score: Int)
+    suspend fun recordConversation()
+    suspend fun setSoundEnabled(enabled: Boolean)
+    suspend fun setGentleReminders(enabled: Boolean)
+    suspend fun setMemoryEnabled(enabled: Boolean)
+    suspend fun clearMemories()
+    suspend fun reset()
+}
