@@ -26,7 +26,6 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.dp
 import dev.catandbunny.cloudbuddy.core.model.CloudWeather
-import kotlin.math.sin
 
 @Composable
 fun CloudCharacter(
@@ -60,21 +59,78 @@ fun CloudCharacter(
             size = Size(size.width * .64f, size.height * .27f),
         )
         val face = Color(0xFF34435D)
-        drawCircle(face, size.width * .018f, center + Offset(-size.width * .08f, size.height * .03f))
-        drawCircle(face, size.width * .018f, center + Offset(size.width * .08f, size.height * .03f))
-        val smile = Path().apply {
-            moveTo(center.x - size.width * .045f, center.y + size.height * .09f)
-            quadraticBezierTo(
-                center.x,
-                center.y + size.height * .14f,
-                center.x + size.width * .045f,
-                center.y + size.height * .09f,
-            )
-        }
-        drawPath(smile, face, style = androidx.compose.ui.graphics.drawscope.Stroke(size.width * .01f))
+        drawCloudFace(weather, center, face)
         if (secretLevel >= 3) {
             drawCircle(Color(0xFFFFD166), size.width * .025f, center + Offset(size.width * .28f, -size.height * .2f))
         }
+    }
+}
+
+private fun DrawScope.drawCloudFace(weather: CloudWeather, center: Offset, face: Color) {
+    val eyeY = center.y + size.height * .03f
+    val leftEye = center.x - size.width * .08f
+    val rightEye = center.x + size.width * .08f
+    val stroke = size.width * .01f
+    when (weather) {
+        CloudWeather.FOGGY -> {
+            drawLine(face, Offset(leftEye - 8f, eyeY), Offset(leftEye + 8f, eyeY), strokeWidth = stroke)
+            drawLine(face, Offset(rightEye - 8f, eyeY), Offset(rightEye + 8f, eyeY), strokeWidth = stroke)
+        }
+        else -> {
+            drawCircle(face, size.width * .018f, Offset(leftEye, eyeY))
+            drawCircle(face, size.width * .018f, Offset(rightEye, eyeY))
+        }
+    }
+    if (weather == CloudWeather.RAINY || weather == CloudWeather.STORMY) {
+        drawLine(
+            face,
+            Offset(leftEye - 10f, eyeY - 18f),
+            Offset(leftEye + 9f, eyeY - 13f),
+            strokeWidth = stroke * .75f,
+        )
+        drawLine(
+            face,
+            Offset(rightEye - 9f, eyeY - 13f),
+            Offset(rightEye + 10f, eyeY - 18f),
+            strokeWidth = stroke * .75f,
+        )
+    }
+    val mouth = Path().apply {
+        when (weather) {
+            CloudWeather.SUNNY -> {
+                moveTo(center.x - size.width * .055f, center.y + size.height * .085f)
+                quadraticBezierTo(center.x, center.y + size.height * .15f, center.x + size.width * .055f, center.y + size.height * .085f)
+            }
+            CloudWeather.SOFT -> {
+                moveTo(center.x - size.width * .045f, center.y + size.height * .09f)
+                quadraticBezierTo(center.x, center.y + size.height * .13f, center.x + size.width * .045f, center.y + size.height * .09f)
+            }
+            CloudWeather.FOGGY -> {
+                moveTo(center.x - size.width * .035f, center.y + size.height * .11f)
+                lineTo(center.x + size.width * .035f, center.y + size.height * .11f)
+            }
+            CloudWeather.RAINY -> {
+                moveTo(center.x - size.width * .04f, center.y + size.height * .12f)
+                quadraticBezierTo(center.x, center.y + size.height * .085f, center.x + size.width * .04f, center.y + size.height * .12f)
+            }
+            CloudWeather.STORMY -> {
+                moveTo(center.x - size.width * .05f, center.y + size.height * .135f)
+                quadraticBezierTo(center.x, center.y + size.height * .075f, center.x + size.width * .05f, center.y + size.height * .135f)
+            }
+        }
+    }
+    drawPath(mouth, face, style = androidx.compose.ui.graphics.drawscope.Stroke(stroke))
+    if (weather == CloudWeather.SUNNY) {
+        drawCircle(Color(0xFFFFB5C2).copy(alpha = .55f), size.width * .025f, Offset(leftEye - size.width * .055f, eyeY + size.height * .055f))
+        drawCircle(Color(0xFFFFB5C2).copy(alpha = .55f), size.width * .025f, Offset(rightEye + size.width * .055f, eyeY + size.height * .055f))
+    }
+    if (weather == CloudWeather.STORMY) {
+        val tear = Path().apply {
+            moveTo(rightEye + size.width * .025f, eyeY + size.height * .025f)
+            quadraticBezierTo(rightEye + size.width * .005f, eyeY + size.height * .075f, rightEye + size.width * .035f, eyeY + size.height * .075f)
+            close()
+        }
+        drawPath(tear, Color(0xFF69A7D8))
     }
 }
 

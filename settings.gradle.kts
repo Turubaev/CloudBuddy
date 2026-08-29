@@ -16,9 +16,11 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven {
+            url = uri("https://artifactory-external.vkpartner.ru/artifactory/maven-rustore-exposed/")
+        }
     }
 }
 
 rootProject.name = "CloudBuddy"
 include(":app")
- 

@@ -29,6 +29,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.catandbunny.cloudbuddy.core.model.ChatMessage
 import dev.catandbunny.cloudbuddy.core.model.CloudWeather
+import dev.catandbunny.cloudbuddy.core.model.AiModel
+import dev.catandbunny.cloudbuddy.core.model.HostedChatAllowance
+import dev.catandbunny.cloudbuddy.core.model.SubscriptionTier
 import dev.catandbunny.cloudbuddy.ui.component.CloudTopBar
 
 @Composable
@@ -37,6 +40,12 @@ fun ChatScreen(
     weather: CloudWeather,
     messages: List<ChatMessage>,
     isSending: Boolean,
+    personalApiEnabled: Boolean,
+    hasPersonalApiKey: Boolean,
+    aiModel: AiModel,
+    subscriptionTier: SubscriptionTier,
+    allowance: HostedChatAllowance,
+    onTariffs: () -> Unit,
     onBack: () -> Unit,
     onSend: (String) -> Unit,
 ) {
@@ -53,6 +62,19 @@ fun ChatScreen(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                when {
+                    personalApiEnabled && hasPersonalApiKey -> "● BYOK · ${aiModel.title}"
+                    allowance.isWelcomePack -> "● Free · ${allowance.remaining} приветственных"
+                    else -> "● ${subscriptionTier.title} · ${allowance.remaining}/${allowance.limit} сегодня"
+                },
+                modifier = Modifier.weight(1f).padding(horizontal = 8.dp, vertical = 2.dp),
+                style = MaterialTheme.typography.labelMedium,
+                color = if (personalApiEnabled && hasPersonalApiKey) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            androidx.compose.material3.TextButton(onClick = onTariffs) { Text("Тарифы") }
+        }
         LazyColumn(
             state = listState,
             modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 12.dp),
@@ -69,7 +91,19 @@ fun ChatScreen(
                         colors = CardDefaults.cardColors(
                             containerColor = if (message.fromUser) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
                         ),
-                    ) { Text(message.text, Modifier.padding(15.dp)) }
+                    ) {
+                        Column(Modifier.padding(15.dp)) {
+                            Text(message.text)
+                            message.sourceLabel?.let { label ->
+                                Text(
+                                    label,
+                                    modifier = Modifier.padding(top = 7.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
                 }
             }
             if (isSending) {

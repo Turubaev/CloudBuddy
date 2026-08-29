@@ -139,7 +139,15 @@ fun GameScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             FilledTonalButton(onClick = finishAndBack) { Text("← Домой") }
-            Text("${engine?.score ?: 0}", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("${engine?.score ?: 0}", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                if (mode == GameMode.CLASSIC) {
+                    Text(
+                        "скорость ×${"%.1f".format(engine?.speedMultiplier() ?: 1f)}",
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
+            }
             FilledTonalButton(
                 onClick = {
                     phase = if (phase == GamePhase.PAUSED) GamePhase.PLAYING else GamePhase.PAUSED

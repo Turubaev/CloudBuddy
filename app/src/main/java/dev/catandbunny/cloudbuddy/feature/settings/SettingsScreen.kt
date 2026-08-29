@@ -30,6 +30,8 @@ fun SettingsScreen(
     state: CloudBuddyState,
     onBack: () -> Unit,
     onMemory: () -> Unit,
+    onPersonalApi: () -> Unit,
+    onTariffs: () -> Unit,
     onSoundChanged: (Boolean) -> Unit,
     onRemindersChanged: (Boolean) -> Unit,
     onMemoryChanged: (Boolean) -> Unit,
@@ -57,6 +59,19 @@ fun SettingsScreen(
             )
             TextButton(onClick = onMemory, modifier = Modifier.fillMaxWidth()) {
                 Text("Управление памятью (${state.memories.size})")
+            }
+            HorizontalDivider(Modifier.padding(vertical = 12.dp))
+            Text("ИИ-чат", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            TextButton(onClick = onTariffs, modifier = Modifier.fillMaxWidth()) {
+                Text("Тарифы · ${state.subscriptionTier.title}")
+            }
+            Text(
+                if (state.personalApiEnabled) "Используется личный OpenAI API · ${state.aiModel.title}" else "Backend CloudBuddy или offline-режим",
+                modifier = Modifier.padding(top = 8.dp),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            TextButton(onClick = onPersonalApi, modifier = Modifier.fillMaxWidth()) {
+                Text("Личный API-ключ и модель")
             }
             HorizontalDivider(Modifier.padding(vertical = 12.dp))
             Text("О приложении", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
