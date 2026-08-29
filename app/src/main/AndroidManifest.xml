@@ -14,14 +14,27 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.CloudBuddy"
         tools:targetApi="31">
+        <meta-data
+            android:name="console_app_id_value"
+            android:value="@string/rustore_console_app_id" />
+        <meta-data
+            android:name="sdk_pay_scheme_value"
+            android:value="@string/rustore_deeplink_scheme" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.CloudBuddy">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="${rustoreDeeplinkScheme}" />
             </intent-filter>
         </activity>
     </application>

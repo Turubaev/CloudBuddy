@@ -7,8 +7,12 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dev.catandbunny.cloudbuddy.core.model.CloudBuddyState
+import dev.catandbunny.cloudbuddy.core.model.AiModel
 import dev.catandbunny.cloudbuddy.core.model.Personality
 import dev.catandbunny.cloudbuddy.core.model.UserMood
+import dev.catandbunny.cloudbuddy.core.model.SubscriptionTier
+import dev.catandbunny.cloudbuddy.core.model.TariffPolicy
+import java.time.LocalDate
 import dev.catandbunny.cloudbuddy.core.model.weatherFor
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -34,6 +38,12 @@ class PreferencesCloudBuddyRepository(
         val reminders = booleanPreferencesKey("gentle_reminders")
         val memory = booleanPreferencesKey("memory_enabled")
         val memories = stringPreferencesKey("memories")
+        val personalApiEnabled = booleanPreferencesKey("personal_api_enabled")
+        val aiModel = stringPreferencesKey("ai_model")
+        val subscriptionTier = stringPreferencesKey("subscription_tier")
+        val welcomeAiMessagesUsed = intPreferencesKey("welcome_ai_messages_used")
+        val dailyAiMessagesUsed = intPreferencesKey("daily_ai_messages_used")
+        val dailyAiEpochDay = stringPreferencesKey("daily_ai_epoch_day")
     }
 
     override val state: Flow<CloudBuddyState> = context.cloudBuddyDataStore.data.map { preferences ->
@@ -52,6 +62,13 @@ class PreferencesCloudBuddyRepository(
             gentleReminders = preferences[Keys.reminders] ?: false,
             memoryEnabled = preferences[Keys.memory] ?: true,
             memories = decodeMemories(preferences[Keys.memories].orEmpty()),
+            personalApiEnabled = preferences[Keys.personalApiEnabled] ?: false,
+            aiModel = preferences[Keys.aiModel].toEnumOrDefault(AiModel.LUNA),
+            subscriptionTier = preferences[Keys.subscriptionTier].toEnumOrDefault(SubscriptionTier.FREE),
+            welcomeAiMessagesUsed = preferences[Keys.welcomeAiMessagesUsed] ?: 0,
+            dailyAiMessagesUsed = preferences[Keys.dailyAiMessagesUsed] ?: 0,
+            dailyAiEpochDay = preferences[Keys.dailyAiEpochDay]?.toLongOrNull()
+                ?: LocalDate.now().toEpochDay(),
         )
     }
 
@@ -89,9 +106,37 @@ class PreferencesCloudBuddyRepository(
         }
     }
 
+    override suspend fun recordHostedAiMessage() {
+        context.cloudBuddyDataStore.edit {
+            val tier = it[Keys.subscriptionTier].toEnumOrDefault(SubscriptionTier.FREE)
+            val welcomeUsed = it[Keys.welcomeAiMessagesUsed] ?: 0
+            if (tier == SubscriptionTier.FREE && welcomeUsed < TariffPolicy.FREE_WELCOME_MESSAGES) {
+                it[Keys.welcomeAiMessagesUsed] = welcomeUsed + 1
+            } else {
+                val today = LocalDate.now().toEpochDay()
+                val storedDay = it[Keys.dailyAiEpochDay]?.toLongOrNull()
+                it[Keys.dailyAiEpochDay] = today.toString()
+                it[Keys.dailyAiMessagesUsed] = if (storedDay == today) {
+                    (it[Keys.dailyAiMessagesUsed] ?: 0) + 1
+                } else {
+                    1
+                }
+            }
+        }
+    }
+
+    override suspend fun setSubscriptionTier(tier: SubscriptionTier) {
+        context.cloudBuddyDataStore.edit { it[Keys.subscriptionTier] = tier.name }
+    }
+
     override suspend fun setSoundEnabled(enabled: Boolean) = update(Keys.sound, enabled)
     override suspend fun setGentleReminders(enabled: Boolean) = update(Keys.reminders, enabled)
     override suspend fun setMemoryEnabled(enabled: Boolean) = update(Keys.memory, enabled)
+    override suspend fun setPersonalApiEnabled(enabled: Boolean) = update(Keys.personalApiEnabled, enabled)
+
+    override suspend fun setAiModel(model: AiModel) {
+        context.cloudBuddyDataStore.edit { it[Keys.aiModel] = model.name }
+    }
 
     override suspend fun clearMemories() {
         context.cloudBuddyDataStore.edit {

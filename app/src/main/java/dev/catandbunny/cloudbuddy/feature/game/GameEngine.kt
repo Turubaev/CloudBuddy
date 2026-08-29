@@ -2,6 +2,7 @@ package dev.catandbunny.cloudbuddy.feature.game
 
 import dev.catandbunny.cloudbuddy.core.model.GameMode
 import kotlin.random.Random
+import kotlin.math.pow
 
 data class WindGate(
     var x: Float,
@@ -20,7 +21,7 @@ class GameEngine(
     private val playerRadius = minOf(width, height) * .045f
     private val gateWidth = width * .14f
     private val gapSize = height * if (mode == GameMode.CALM) .42f else .32f
-    private val speed = width * if (mode == GameMode.CALM) .17f else .25f
+    private val baseSpeed = width * if (mode == GameMode.CALM) .17f else .25f
     private val gravity = height * if (mode == GameMode.CALM) .55f else .85f
     private val jumpVelocity = -height * if (mode == GameMode.CALM) .30f else .38f
 
@@ -46,7 +47,7 @@ class GameEngine(
         playerY += velocityY * dt
 
         gates.forEach { gate ->
-            gate.x -= speed * dt
+            gate.x -= baseSpeed * speedMultiplier() * dt
             if (!gate.passed && gate.x + gateWidth < playerX) {
                 gate.passed = true
                 score++
@@ -74,10 +75,19 @@ class GameEngine(
     fun playerRadius(): Float = playerRadius
     fun gateWidth(): Float = gateWidth
     fun gapSize(): Float = gapSize
+    fun speedMultiplier(): Float = if (mode == GameMode.CALM) 1f else {
+        classicSpeedMultiplier(score, elapsedSeconds)
+    }
 
     private fun newGate(x: Float): WindGate {
         val margin = gapSize / 2f + height * .08f
         val center = margin + random.nextFloat() * (height - margin * 2f)
         return WindGate(x, center)
     }
+}
+
+internal fun classicSpeedMultiplier(score: Int, elapsedSeconds: Float): Float {
+    val scoreGrowth = .055f * score.coerceAtLeast(0).toFloat().pow(1.35f)
+    val timeGrowth = .0025f * elapsedSeconds.coerceAtLeast(0f).pow(1.15f)
+    return (1f + scoreGrowth + timeGrowth).coerceAtMost(3f)
 }

@@ -20,6 +20,10 @@ import dev.catandbunny.cloudbuddy.feature.home.HomeScreen
 import dev.catandbunny.cloudbuddy.feature.memory.MemoryScreen
 import dev.catandbunny.cloudbuddy.feature.onboarding.OnboardingScreen
 import dev.catandbunny.cloudbuddy.feature.settings.SettingsScreen
+import dev.catandbunny.cloudbuddy.feature.settings.PersonalApiScreen
+import dev.catandbunny.cloudbuddy.feature.subscription.TariffsScreen
+import dev.catandbunny.cloudbuddy.core.model.hostedChatAllowance
+import android.app.Activity
 import dev.catandbunny.cloudbuddy.ui.component.LoadingScreen
 
 private object Route {
@@ -30,6 +34,8 @@ private object Route {
     const val Chat = "chat"
     const val Settings = "settings"
     const val Memory = "memory"
+    const val PersonalApi = "personal_api"
+    const val Tariffs = "tariffs"
     const val Game = "game/{mode}"
 
     fun game(mode: GameMode) = "game/${mode.name}"
@@ -43,6 +49,9 @@ fun CloudBuddyApp() {
     val state by viewModel.buddyState.collectAsState()
     val messages by viewModel.messages.collectAsState()
     val isSending by viewModel.isSending.collectAsState()
+    val hasPersonalApiKey by viewModel.hasPersonalApiKey.collectAsState()
+    val personalApiNotice by viewModel.personalApiNotice.collectAsState()
+    val subscriptionState by viewModel.subscriptionState.collectAsState()
     val navController = rememberNavController()
 
     LaunchedEffect(state.isLoaded) {
@@ -92,6 +101,12 @@ fun CloudBuddyApp() {
                 weather = state.weather,
                 messages = messages,
                 isSending = isSending,
+                personalApiEnabled = state.personalApiEnabled,
+                hasPersonalApiKey = hasPersonalApiKey,
+                aiModel = state.aiModel,
+                subscriptionTier = state.subscriptionTier,
+                allowance = state.hostedChatAllowance(),
+                onTariffs = { navController.navigate(Route.Tariffs) },
                 onBack = { navController.popBackStack() },
                 onSend = viewModel::sendMessage,
             )
@@ -114,6 +129,8 @@ fun CloudBuddyApp() {
                 state = state,
                 onBack = { navController.popBackStack() },
                 onMemory = { navController.navigate(Route.Memory) },
+                onPersonalApi = { navController.navigate(Route.PersonalApi) },
+                onTariffs = { navController.navigate(Route.Tariffs) },
                 onSoundChanged = viewModel::setSoundEnabled,
                 onRemindersChanged = viewModel::setGentleReminders,
                 onMemoryChanged = viewModel::setMemoryEnabled,
@@ -131,6 +148,30 @@ fun CloudBuddyApp() {
                 enabled = state.memoryEnabled,
                 onBack = { navController.popBackStack() },
                 onClear = viewModel::clearMemories,
+            )
+        }
+        composable(Route.PersonalApi) {
+            PersonalApiScreen(
+                enabled = state.personalApiEnabled,
+                hasKey = hasPersonalApiKey,
+                selectedModel = state.aiModel,
+                notice = personalApiNotice,
+                onBack = { navController.popBackStack() },
+                onEnabledChanged = viewModel::setPersonalApiEnabled,
+                onModelChanged = viewModel::setAiModel,
+                onSaveKey = viewModel::savePersonalApiKey,
+                onDeleteKey = viewModel::deletePersonalApiKey,
+            )
+        }
+        composable(Route.Tariffs) {
+            TariffsScreen(
+                state = state,
+                subscription = subscriptionState,
+                hasPersonalApiKey = hasPersonalApiKey,
+                onBack = { navController.popBackStack() },
+                onPurchasePlus = { (context as? Activity)?.let(viewModel::purchasePlus) },
+                onRefresh = viewModel::refreshSubscription,
+                onOpenByok = { navController.navigate(Route.PersonalApi) },
             )
         }
     }
